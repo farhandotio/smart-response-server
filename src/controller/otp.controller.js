@@ -1,57 +1,69 @@
-import otpGenerator from 'otp-generator';
-import authModel from '../model/user.model.js';
-import bcrypt from 'bcrypt';
-import { sendEmail } from '../utils/sendEmail.js';
-import { otpTemplate } from '../email/otpTemplate.js';
-import { welcomeTemplate } from '../email/welcomeTemplate.js';
-import asyncHandler from '../utils/asynhandler.js';
-import AppError from '../utils/AppError.js';
+import otpGenerator from "otp-generator";
+import authModel from "../model/user.model.js";
+import bcrypt from "bcrypt";
+import { sendEmail } from "../utils/sendEmail.js";
+import { otpTemplate } from "../email/otpTemplate.js";
+import { welcomeTemplate } from "../email/welcomeTemplate.js";
+import generateToken from "../utils/token.js";
+import asyncHandler from "../utils/asynhandler.js";
+import AppError from "../utils/AppError.js";
+
+const otpStore = new Map();
+const otpAttempts = new Map();
+
+export const sendOTPForRegistration = async (email, username, password) => {
+    const existing = otpStore.get(email);
+    if (existing) {
+        throw new AppError("Please wait before requesting another OTP", 400);
+    }
+
+    const otp = otpGenerator.generate(6, {
+        digits: true,
+        lowerCaseAlphabets: false,
+        upperCaseAlphabets: false,
+        specialChars: false
+    });
+
+    console.log("OTP:", otp);
+
+    const hashedOTP = await bcrypt.hash(otp, 10);
+
+    otpStore.set(email, {
+        otp: hashedOTP,
+        username,
+        password,
+        expiresAt: Date.now() + 5 * 60 * 1000
+    });
+
+    // auto delete after 5 min
+    setTimeout(() => {
+        otpStore.delete(email);
+        otpAttempts.delete(email);
+    }, 5 * 60 * 1000);
+
+    try {
+        await sendEmail({
+            to: email,
+            subject: "Verify Your Email - SnapSphere",
+            html: otpTemplate(username, otp)
+        });
+        console.log(`OTP email sent to ${email}`);
+    } catch (error) {
+        otpStore.delete(email);
+        otpAttempts.delete(email);
+        console.error(`Failed to send OTP email to ${email}:`, error?.message || error);
+        throw new AppError("Unable to send OTP email. Please try again later.", 502);
+    }
+};
 
 export const sendOTP = asyncHandler(async (req, res, next) => {
-  const { email, username, password } = req.body;
+    const { email, username, password } = req.body;
+    await sendOTPForRegistration(email, username, password);
 
-  const existing = otpStore.get(email);
-  if (existing) {
-    return next(new AppError('Please wait before requesting another OTP', 400));
-  }
-
-  const otp = otpGenerator.generate(6, {
-    digits: true,
-    lowerCaseAlphabets: false,
-    upperCaseAlphabets: false,
-    specialChars: false,
-  });
-
-  console.log('OTP:', otp);
-
-  const hashedOTP = await bcrypt.hash(otp, 10);
-
-  otpStore.set(email, {
-    otp: hashedOTP,
-    username,
-    password,
-    expiresAt: Date.now() + 5 * 60 * 1000,
-  });
-
-  // auto delete after 5 min
-  setTimeout(
-    () => {
-      otpStore.delete(email);
-      otpAttempts.delete(email);
-    },
-    5 * 60 * 1000
-  );
-
-  await sendEmail({
-    to: email,
-    subject: 'Verify Your Email - SnapSphere',
-    html: otpTemplate(username, otp),
-  });
-
-  res.status(200).json({
-    success: true,
-    message: 'OTP sent successfully',
-  });
+    res.status(200).json({
+        success: true,
+        message: "OTP sent successfully"
+    });
 });
 export const verifyOTPAndRegister = asyncHandler(async (req, res, next) => {
   const { email, otp } = req.body;
