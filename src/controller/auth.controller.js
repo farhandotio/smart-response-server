@@ -25,53 +25,69 @@ export const sendOtpRegister = asyncHandler(async (req, res, next) => {
     );
   }
 
-    await sendOTPForRegistration(email, username, password);
-    res.status(200).json({
-        success: true,
-        message: "OTP sent successfully to your email"
-    });
+  await sendOTPForRegistration(email, username, password);
+  res.status(200).json({
+    success: true,
+    message: 'OTP sent successfully to your email',
+  });
 });
 
 export const loginUser = asyncHandler(async (req, res, next) => {
-    const { identifier, password } = req.body;
+  const { identifier, password } = req.body;
 
-    if (!identifier || !password) {
-        return next(new AppError("Username/email and password are required", 400));
-    }
+  if (!identifier || !password) {
+    return next(new AppError('Username/email and password are required', 400));
+  }
 
-    const user = await authModel.findOne({
-        $or: [{ email: identifier }, { username: identifier }]
-    }).select('+password'); 
+  const user = await authModel
+    .findOne({
+      $or: [{ email: identifier }, { username: identifier }],
+    })
+    .select('+password');
 
-    if (!user) {
-        return next(new AppError("Invalid credentials", 401));
-    }
+  if (!user) {
+    return next(new AppError('Invalid credentials', 401));
+  }
 
-    if (!user.isVerified) {
-        return next(new AppError("Please verify your email before logging in", 401));
-    }
+  if (!user.isVerified) {
+    return next(new AppError('Please verify your email before logging in', 401));
+  }
 
-    const isMatch = await bcrypt.compare(password, user.password)
-    if (!isMatch) {
-        return next(new AppError("Invalid credentials", 401));
-    }
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return next(new AppError('Invalid credentials', 401));
+  }
 
-    const token = generateToken(user._id);
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+  const token = generateToken(user._id);
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
-    res.status(200).json({
-        success: true,
-        message: "Login successful",
-        user: {
-            id: user._id,
-            username: user.username,
-            email: user.email,
-            role: user.role || null
-        }
-    });
+  res.status(200).json({
+    success: true,
+    message: 'Login successful',
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role || null,
+    },
+  });
+});
+
+export const logoutUser = asyncHandler(async (req, res, next) => {
+  res.cookie('token', null, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    expires: new Date(0),
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Logged out successfully',
+  });
 });
