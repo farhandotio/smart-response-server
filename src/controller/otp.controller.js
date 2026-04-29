@@ -76,7 +76,8 @@ export const verifyOTPAndRegister = asyncHandler(async (req, res, next) => {
   }
 
   const { otp: hashedOTP, username, password, expiresAt } = data;
-
+  
+  
   // expiry check
   if (Date.now() > expiresAt) {
     otpStore.delete(email);
