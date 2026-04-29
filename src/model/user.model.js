@@ -14,29 +14,14 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
     password: {
-      type: String,
-      required: true,
+        type: String,
+        required: true
     },
-    role: {
-      type: String,
-      enum: ['user', 'client', 'developer', 'admin'],
-      default: 'user',
-    },
-    walletBalance: {
-      type: Number,
-      default: 0,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-  { timestamps: true }
-);
+    isVerified: {
+        type: Boolean,
+        default: false
+    }
+}, { timestamps: true });
 
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
