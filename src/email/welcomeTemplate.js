@@ -1,5 +1,5 @@
 export function welcomeTemplate(username) {
-    return `
+  return `
   <div style="background:#f2f4f7;padding:40px 0;font-family:Arial,Helvetica,sans-serif;">
 
     <div style="max-width:520px;margin:auto;background:#ffffff;border-radius:10px;
