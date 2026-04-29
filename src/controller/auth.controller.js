@@ -41,7 +41,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
 
     const user = await authModel.findOne({
         $or: [{ email: identifier }, { username: identifier }]
-    });
+    }).select('+password'); 
 
     if (!user) {
         return next(new AppError("Invalid credentials", 401));
@@ -51,7 +51,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
         return next(new AppError("Please verify your email before logging in", 401));
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) {
         return next(new AppError("Invalid credentials", 401));
     }
