@@ -7,21 +7,23 @@ import AppError from '../utils/AppError.js';
 import { sendOTPForRegistration } from './otp.controller.js';
 
 export const sendOtpRegister = asyncHandler(async (req, res, next) => {
-    const { username, email, password } = req.body;
+  const { username, email, password } = req.body;
 
-    if (!email || !username || !password) {
-        return next(new AppError("All fields are required", 400));
-    }
-    const existingUser = await authModel.findOne({
-        $or: [{ username }, { email }]
-    });
+  if (!email || !username || !password) {
+    return next(new AppError('All fields are required', 400));
+  }
+  const existingUser = await authModel.findOne({
+    $or: [{ username }, { email }],
+  });
 
-    if (existingUser) {
-        return next(new AppError(
-            existingUser.email === email ? "Email already exists" : "Username already exists",
-            409
-        ));
-    }
+  if (existingUser) {
+    return next(
+      new AppError(
+        existingUser.email === email ? 'Email already exists' : 'Username already exists',
+        409
+      )
+    );
+  }
 
     await sendOTPForRegistration(email, username, password);
     res.status(200).json({

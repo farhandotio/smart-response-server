@@ -1,5 +1,5 @@
 export function otpTemplate(username, otp) {
-    return `
+  return `
   <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
     <div style="max-width:500px;margin:auto;background:#ffffff;border-radius:10px;padding:30px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
 

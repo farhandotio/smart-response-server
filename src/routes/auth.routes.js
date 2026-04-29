@@ -1,5 +1,5 @@
-import express from "express";
-import identifyUser from "../middleware/auth.middleware.js";
+import express from 'express';
+import identifyUser from '../middleware/auth.middleware.js';
 const authRoutes = express.Router();
 import { registerValidation } from "../validator/auth.validator.js";
 import { sendOtpRegister, loginUser } from "../controller/auth.controller.js";
