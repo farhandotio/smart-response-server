@@ -5,13 +5,26 @@ import developerModel from '../model/developer.model.js';
 import clientModel from '../model/client.model.js';
 
 export const becomeDeveloper = asyncHandler(async (req, res, next) => {
+  const userId = req.user.id;
   const { experienceYears, techStack, rateMin, rateMax, bio, portfolioLink } = req.body;
-  const userId = req.user.id; 
+
+  const user = await authModel.findById(userId);
+
+  if (user.role === 'developer') {
+    return next(new AppError('You are already a Developer.', 400));
+  }
+
+  if (user.role === 'client') {
+    return next(
+      new AppError('A Client cannot become a Developer. Please use a different account.', 403)
+    );
+  }
 
   const existingProfile = await developerModel.findOne({ userId });
   if (existingProfile) return next(new AppError('Developer profile already exists', 400));
 
-  await authModel.findByIdAndUpdate(userId, { role: 'developer' });
+  user.role = 'developer';
+  await user.save();
 
   const profile = await developerModel.create({
     userId,
@@ -26,19 +39,32 @@ export const becomeDeveloper = asyncHandler(async (req, res, next) => {
   res.status(201).json({
     success: true,
     message: 'Developer profile created successfully',
-    user: await authModel.findById(userId).select('-password'),
+    user: { id: user._id, username: user.username, role: user.role },
     profile,
   });
 });
 
 export const becomeClient = asyncHandler(async (req, res, next) => {
-  const { companyName, companyDesc } = req.body;
   const userId = req.user.id;
+  const { companyName, companyDesc } = req.body;
+
+  const user = await authModel.findById(userId);
+
+  if (user.role === 'client') {
+    return next(new AppError('You are already a Client.', 400));
+  }
+
+  if (user.role === 'developer') {
+    return next(
+      new AppError('A Developer cannot become a Client. Please use a different account.', 403)
+    );
+  }
 
   const existingProfile = await clientModel.findOne({ userId });
   if (existingProfile) return next(new AppError('Client profile already exists', 400));
 
-  await authModel.findByIdAndUpdate(userId, { role: 'client' });
+  user.role = 'client';
+  await user.save();
 
   const profile = await clientModel.create({
     userId,
@@ -49,7 +75,7 @@ export const becomeClient = asyncHandler(async (req, res, next) => {
   res.status(201).json({
     success: true,
     message: 'Client profile created successfully',
-    user: await authModel.findById(userId).select('-password'),
+    user: { id: user._id, username: user.username, role: user.role },
     profile,
   });
 });
