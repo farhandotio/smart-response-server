@@ -4,15 +4,17 @@ import bcrypt from "bcrypt";
 import { sendEmail } from "../utils/sendEmail.js";
 import { otpTemplate } from "../email/otpTemplate.js";
 import { welcomeTemplate } from "../email/welcomeTemplate.js";
+import generateToken from "../utils/token.js";
 import asyncHandler from "../utils/asynhandler.js";
 import AppError from "../utils/AppError.js";
 
-export const sendOTP = asyncHandler(async (req, res, next) => {
-    const { email, username, password } = req.body;
+const otpStore = new Map();
+const otpAttempts = new Map();
 
+export const sendOTPForRegistration = async (email, username, password) => {
     const existing = otpStore.get(email);
     if (existing) {
-        return next(new AppError("Please wait before requesting another OTP", 400));
+        throw new AppError("Please wait before requesting another OTP", 400);
     }
 
     const otp = otpGenerator.generate(6, {
@@ -39,11 +41,24 @@ export const sendOTP = asyncHandler(async (req, res, next) => {
         otpAttempts.delete(email);
     }, 5 * 60 * 1000);
 
-    await sendEmail({
-        to: email,
-        subject: "Verify Your Email - SnapSphere",
-        html: otpTemplate(username, otp)
-    });
+    try {
+        await sendEmail({
+            to: email,
+            subject: "Verify Your Email - SnapSphere",
+            html: otpTemplate(username, otp)
+        });
+        console.log(`OTP email sent to ${email}`);
+    } catch (error) {
+        otpStore.delete(email);
+        otpAttempts.delete(email);
+        console.error(`Failed to send OTP email to ${email}:`, error?.message || error);
+        throw new AppError("Unable to send OTP email. Please try again later.", 502);
+    }
+};
+
+export const sendOTP = asyncHandler(async (req, res, next) => {
+    const { email, username, password } = req.body;
+    await sendOTPForRegistration(email, username, password);
 
     res.status(200).json({
         success: true,
