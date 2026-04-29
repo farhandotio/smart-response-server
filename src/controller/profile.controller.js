@@ -4,6 +4,27 @@ import authModel from '../model/user.model.js';
 import developerModel from '../model/developer.model.js';
 import clientModel from '../model/client.model.js';
 
+export const getMe = asyncHandler(async (req, res, next) => {
+  const userId = req.user.id;
+
+  const user = await authModel.findById(userId).select('-password');
+  if (!user) return next(new AppError('User not found', 404));
+
+  let profile = null;
+
+  if (user.role === 'developer') {
+    profile = await developerModel.findOne({ userId });
+  } else if (user.role === 'client') {
+    profile = await clientModel.findOne({ userId });
+  }
+
+  res.status(200).json({
+    success: true,
+    user,
+    profile,
+  });
+});
+
 export const becomeDeveloper = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
   const { experienceYears, techStack, rateMin, rateMax, bio, portfolioLink } = req.body;
