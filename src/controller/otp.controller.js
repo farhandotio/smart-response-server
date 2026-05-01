@@ -144,7 +144,7 @@ export const verifyOTPAndRegister = asyncHandler(async (req, res, next) => {
     html: welcomeTemplate(user.username),
   });
 
-  const token = generateToken(user._id);
+  const token = generateToken(user._id, user.role, user.username, user.email);
 
   res.cookie('token', token, {
     httpOnly: true,
