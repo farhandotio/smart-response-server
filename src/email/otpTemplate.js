@@ -3,7 +3,7 @@ export function otpTemplate(username, otp) {
   <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
     <div style="max-width:500px;margin:auto;background:#ffffff;border-radius:10px;padding:30px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
 
-      <h2 style="color:#333;">Welcome to SnapSphere</h2>
+      <h2 style="color:#333;">Welcome to Smart Response</h2>
 
       <p style="color:#555;font-size:15px;">
         Hi <strong>${username}</strong>, <br><br>
@@ -36,7 +36,7 @@ export function otpTemplate(username, otp) {
       <hr style="margin:30px 0;border:none;border-top:1px solid #eee">
 
       <p style="font-size:12px;color:#aaa;">
-        © ${new Date().getFullYear()} SnapSphere. All rights reserved.
+        © ${new Date().getFullYear()} Smart Response. All rights reserved.
       </p>
 
     </div>
