@@ -1,102 +1,56 @@
 import asyncHandler from '../utils/asynhandler.js';
 import AppError from '../utils/AppError.js';
 import authModel from '../model/user.model.js';
-import developerModel from '../model/developer.model.js';
-import clientModel from '../model/client.model.js';
+import engineerModel from '../model/engineer.model.js';
+import companyModel from '../model/company.model.js';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
+import slugify from 'slugify';
 
 export const getMe = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
-
   const user = await authModel.findById(userId).select('-password');
   if (!user) return next(new AppError('User not found', 404));
 
   let profile = null;
-
-  if (user.role === 'developer') {
-    profile = await developerModel.findOne({ userId });
-  } else if (user.role === 'client') {
-    profile = await clientModel.findOne({ userId });
+  if (user.role === 'engineer') {
+    profile = await engineerModel.findOne({ userId });
+  } else if (user.role === 'company_admin') {
+    profile = await companyModel.findOne({ ownerId: userId });
   }
 
-  res.status(200).json({
-    success: true,
-    user,
-    profile,
-  });
+  res.status(200).json({ success: true, user, profile });
 });
 
-export const becomeDeveloper = asyncHandler(async (req, res, next) => {
+export const setupEngineerProfile = asyncHandler(async (req, res, next) => {
+  if (req.user.role !== 'engineer') {
+    return next(new AppError('Only engineers can set up this profile', 403));
+  }
   const userId = req.user.id;
-  const { experienceYears, techStack, rateMin, rateMax, bio, portfolioLink } = req.body;
+  const { expertise, seniority, bio } = req.body;
 
-  const user = await authModel.findById(userId);
-
-  if (user.role === 'developer') {
-    return next(new AppError('You are already a Developer.', 400));
+  let pictureUrl = '';
+  if (req.file) {
+    pictureUrl = await uploadToCloudinary(req.file.buffer, 'engineer_pics');
   }
 
-  if (user.role === 'client') {
-    return next(
-      new AppError('A Client cannot become a Developer. Please use a different account.', 403)
-    );
+  let profile = await engineerModel.findOne({ userId });
+
+  if (profile) {
+    profile.expertise = expertise || profile.expertise;
+    profile.seniority = seniority || profile.seniority;
+    profile.bio = bio || profile.bio;
+    if (pictureUrl) profile.picture = pictureUrl;
+    await profile.save();
+  } else {
+    profile = await engineerModel.create({
+      userId,
+      expertise,
+      seniority,
+      bio,
+      picture: pictureUrl,
+      availabilityStatus: 'online',
+    });
   }
 
-  const existingProfile = await developerModel.findOne({ userId });
-  if (existingProfile) return next(new AppError('Developer profile already exists', 400));
-
-  user.role = 'developer';
-  await user.save();
-
-  const profile = await developerModel.create({
-    userId,
-    experienceYears,
-    techStack,
-    rateMin,
-    rateMax,
-    bio,
-    portfolioLink,
-  });
-
-  res.status(201).json({
-    success: true,
-    message: 'Developer profile created successfully',
-    user: { id: user._id, username: user.username, role: user.role },
-    profile,
-  });
-});
-
-export const becomeClient = asyncHandler(async (req, res, next) => {
-  const userId = req.user.id;
-  const { companyName, companyDesc } = req.body;
-
-  const user = await authModel.findById(userId);
-
-  if (user.role === 'client') {
-    return next(new AppError('You are already a Client.', 400));
-  }
-
-  if (user.role === 'developer') {
-    return next(
-      new AppError('A Developer cannot become a Client. Please use a different account.', 403)
-    );
-  }
-
-  const existingProfile = await clientModel.findOne({ userId });
-  if (existingProfile) return next(new AppError('Client profile already exists', 400));
-
-  user.role = 'client';
-  await user.save();
-
-  const profile = await clientModel.create({
-    userId,
-    companyName,
-    companyDesc,
-  });
-
-  res.status(201).json({
-    success: true,
-    message: 'Client profile created successfully',
-    user: { id: user._id, username: user.username, role: user.role },
-    profile,
-  });
+  res.status(200).json({ success: true, profile });
 });

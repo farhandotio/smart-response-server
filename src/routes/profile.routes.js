@@ -1,19 +1,21 @@
 import express from 'express';
 import identifyUser from '../middleware/auth.middleware.js';
-import { validate } from '../middleware/validator.middleawre.js';
-import { becomeDeveloper, becomeClient, getMe } from '../controller/profile.controller.js';
-import { developerValidation, clientValidation } from '../validator/profile.validator.js';
+import { validate } from '../middleware/validator.middleware.js';
+import { getMe, setupEngineerProfile } from '../controller/profile.controller.js';
+import { engineerProfileValidation } from '../validator/profile.validator.js';
+import { upload } from '../middleware/multer.middleware.js';
 
 const profileRoutes = express.Router();
 
 profileRoutes.get('/me', identifyUser, getMe);
+
 profileRoutes.post(
-  '/become-developer',
+  '/setup-engineer',
   identifyUser,
-  developerValidation,
+  upload.single('image'),
+  engineerProfileValidation,
   validate,
-  becomeDeveloper
+  setupEngineerProfile
 );
-profileRoutes.post('/become-client', identifyUser, clientValidation, validate, becomeClient);
 
 export default profileRoutes;
