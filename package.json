@@ -13,6 +13,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.15.2",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
@@ -25,9 +27,11 @@
     "mongoose": "^9.6.0",
     "morgan": "^1.10.1",
     "multer": "^2.1.1",
+    "node-cron": "^4.2.1",
     "otp-generator": "^4.0.1",
     "resend": "^6.12.2",
     "slugify": "^1.6.9",
+    "socket.io": "^4.8.3",
     "stripe": "^22.1.0"
   }
 }

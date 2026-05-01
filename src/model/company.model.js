@@ -6,6 +6,13 @@ const companySchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true },
     logo: { type: String, default: '' },
     description: { type: String, maxlength: 500 },
+    logSources: [
+      {
+        sourceName: { type: String, required: true },
+        logUrl: { type: String, required: true },
+        serviceType: { type: String, enum: ['frontend', 'backend', 'database'] },
+      },
+    ],
 
     ownerId: {
       type: mongoose.Schema.Types.ObjectId,
