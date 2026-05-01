@@ -6,7 +6,7 @@ import slugify from 'slugify';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 export const createWorkspace = asyncHandler(async (req, res, next) => {
-  const { name, description } = req.body;
+  const { name, description, logSources } = req.body;
   const userId = req.user.id;
 
   const existingCompany = await companyModel.findOne({ ownerId: userId });
@@ -25,6 +25,7 @@ export const createWorkspace = asyncHandler(async (req, res, next) => {
     description,
     logo: logoUrl,
     ownerId: userId,
+    logSources,
   });
 
   res.status(201).json({ success: true, company });

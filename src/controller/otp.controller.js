@@ -10,6 +10,7 @@ import AppError from '../utils/AppError.js';
 import inviteModel from '../model/invite.model.js';
 import engineerModel from '../model/engineer.model.js';
 import companyModel from '../model/company.model.js';
+import { config } from '../config/config.js';
 
 const otpStore = new Map();
 const otpAttempts = new Map();
@@ -49,7 +50,7 @@ export const sendOTPForRegistration = async (email, username, password) => {
   try {
     await sendEmail({
       to: email,
-      subject: 'Verify Your Email - SnapSphere',
+      subject: 'Verify Your Email - Smart Response',
       html: otpTemplate(username, otp),
     });
     console.log(`OTP email sent to ${email}`);
@@ -144,11 +145,11 @@ export const verifyOTPAndRegister = asyncHandler(async (req, res, next) => {
     html: welcomeTemplate(user.username),
   });
 
-  const token = generateToken(user._id);
+  const token = generateToken(user._id, user.role, user.username, user.email);
 
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: config.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });

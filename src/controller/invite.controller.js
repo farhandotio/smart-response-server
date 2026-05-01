@@ -4,6 +4,7 @@ import { sendEmail } from '../utils/sendEmail.js';
 import asyncHandler from '../utils/asynhandler.js';
 import AppError from '../utils/AppError.js';
 import companyModel from '../model/company.model.js';
+import { config } from '../config/config.js';
 
 export const inviteEngineer = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
@@ -20,7 +21,7 @@ export const inviteEngineer = asyncHandler(async (req, res, next) => {
     token,
   });
 
-  const inviteLink = `${process.env.CLIENT_URL}/register?token=${token}&email=${email}`;
+  const inviteLink = `${config.CLIENT_URL}/register?token=${token}&email=${email}`;
 
   await sendEmail({
     to: email,
