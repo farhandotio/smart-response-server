@@ -20,12 +20,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'client', 'developer', 'admin'],
-      default: 'user',
-    },
-    walletBalance: {
-      type: Number,
-      default: 0,
+      enum: ['engineer', 'company_admin', 'platform_admin'],
+      default: 'company_admin',
     },
     isVerified: {
       type: Boolean,
