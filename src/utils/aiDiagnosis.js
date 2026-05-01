@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { config } from '../config/config.js';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
 
 export const analyzeLogWithAI = async (logContent) => {
   const model = genAI.getGenerativeModel({

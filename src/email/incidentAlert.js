@@ -1,3 +1,5 @@
+import { config } from "../config/config.js";
+
 export const incidentAlertTemplate = (incident, companyName) => `
   <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee;">
     <h2 style="color: #d9534f;">🚨 New Incident Detected: ${incident.title}</h2>
@@ -8,7 +10,7 @@ export const incidentAlertTemplate = (incident, companyName) => `
     <p><strong>Description:</strong></p>
     <p>${incident.description}</p>
     <br />
-    <a href="${process.env.CLIENT_URL}/incidents/${incident._id}" 
+    <a href="${config.CLIENT_URL}/incidents/${incident._id}" 
        style="background: #0275d8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
        View Incident Dashboard
     </a>
