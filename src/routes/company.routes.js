@@ -15,7 +15,7 @@ const companyRoutes = express.Router();
 companyRoutes.post(
   '/create',
   identifyUser,
-  upload.single('logo'),
+  upload.single('image'),
   companyValidation,
   validate,
   createWorkspace
