@@ -5,6 +5,7 @@ import generateToken from '../utils/token.js';
 import asyncHandler from '../utils/asynhandler.js';
 import AppError from '../utils/AppError.js';
 import { sendOTPForRegistration } from './otp.controller.js';
+import { config } from '../config/config.js';
 
 export const sendOtpRegister = asyncHandler(async (req, res, next) => {
   const { username, email, password } = req.body;
@@ -61,7 +62,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   const token = generateToken(user._id, user.role, user.username, user.email);
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: config.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -81,7 +82,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
 export const logoutUser = asyncHandler(async (req, res, next) => {
   res.cookie('token', null, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: config.NODE_ENV === 'production',
     sameSite: 'strict',
     expires: new Date(0),
   });

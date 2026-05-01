@@ -1,3 +1,4 @@
+import { config } from './config.js';
 import { Server } from 'socket.io';
 
 let io;
@@ -5,13 +6,13 @@ let io;
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: ['http://localhost:5173', 'http://localhost:5174'],
+      origin: [config.CLIENT_URL, 'http://localhost:5173'],
       credentials: true,
     },
   });
 
   io.on('connection', (socket) => {
-    console.log('⚡ User Connected to Socket:', socket.id);
+    console.log('User Connected to Socket:', socket.id);
 
     socket.on('join-company', (companyId) => {
       socket.join(companyId);
