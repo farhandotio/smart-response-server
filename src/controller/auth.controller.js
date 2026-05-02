@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import authModel from '../model/user.model.js';
+import engineerModel from '../model/engineer.model.js';
 import generateToken from '../utils/token.js';
 import asyncHandler from '../utils/asynhandler.js';
 import AppError from '../utils/AppError.js';
@@ -90,5 +91,48 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: 'Logged out successfully',
+  });
+});
+export const updateRole = asyncHandler(async (req, res, next) => {
+  const { role } = req.body;
+  const userId = req.user.id;
+
+  if (!['engineer', 'company_admin'].includes(role)) {
+    return next(new AppError('Invalid role selection', 400));
+  }
+
+  const user = await authModel.findByIdAndUpdate(
+    userId,
+    { role },
+    { new: true, runValidators: true }
+  );
+
+  if (!user) return next(new AppError('User not found', 404));
+  
+  if (role === 'engineer') {
+    const existingProfile = await engineerModel.findOne({ userId: user._id });
+    if (!existingProfile) {
+      await engineerModel.create({ userId: user._id, availabilityStatus: 'online' });
+    }
+  }
+
+  // Generate new token with updated role
+  const token = generateToken(user._id, user.role, user.username, user.email);
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Role updated successfully',
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    },
   });
 });
