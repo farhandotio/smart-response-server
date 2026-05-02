@@ -1,7 +1,7 @@
 import express from 'express';
 import identifyUser from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validator.middleware.js';
-import { getMe, setupEngineerProfile } from '../controller/profile.controller.js';
+import { getMe, setupEngineerProfile, updateProfile } from '../controller/profile.controller.js';
 import { engineerProfileValidation } from '../validator/profile.validator.js';
 import { upload } from '../middleware/multer.middleware.js';
 
@@ -16,6 +16,13 @@ profileRoutes.post(
   engineerProfileValidation,
   validate,
   setupEngineerProfile
+);
+
+profileRoutes.put(
+  '/update',
+  identifyUser,
+  upload.single('image'),
+  updateProfile
 );
 
 export default profileRoutes;

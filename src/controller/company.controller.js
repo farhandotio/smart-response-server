@@ -119,3 +119,20 @@ export const getCompanyDetails = asyncHandler(async (req, res, next) => {
   if (!company) return next(new AppError('Company not found', 404));
   res.status(200).json({ success: true, company });
 });
+
+export const addLogSource = asyncHandler(async (req, res, next) => {
+  const { sourceName, logUrl, serviceType } = req.body;
+  const userId = req.user.id;
+
+  if (!sourceName || !logUrl || !serviceType) {
+    return next(new AppError('Please provide all required log source fields', 400));
+  }
+
+  const company = await companyModel.findOne({ ownerId: userId });
+  if (!company) return next(new AppError('Workspace not found or unauthorized', 404));
+
+  company.logSources.push({ sourceName, logUrl, serviceType });
+  await company.save();
+
+  res.status(200).json({ success: true, message: 'Log source integrated successfully', logSources: company.logSources });
+});
