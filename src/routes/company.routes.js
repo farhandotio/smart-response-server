@@ -7,6 +7,7 @@ import {
   getCompanyDetails,
   getInvitations,
   acceptInvitation,
+  addLogSource
 } from '../controller/company.controller.js';
 import { inviteEngineer } from '../controller/invite.controller.js';
 import { companyValidation, inviteValidation } from '../validator/company.validator.js';
@@ -26,6 +27,7 @@ companyRoutes.get('/members', identifyUser, getMembers);
 companyRoutes.get('/invitations', identifyUser, getInvitations);
 companyRoutes.post('/accept-invitation', identifyUser, acceptInvitation);
 companyRoutes.post('/invite', identifyUser, inviteValidation, validate, inviteEngineer);
+companyRoutes.post('/log-source', identifyUser, addLogSource);
 companyRoutes.get('/:slug', getCompanyDetails);
 
 export default companyRoutes;

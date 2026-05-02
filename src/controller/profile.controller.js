@@ -77,3 +77,51 @@ export const setupEngineerProfile = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({ success: true, profile });
 });
+
+export const updateProfile = asyncHandler(async (req, res, next) => {
+  const userId = req.user.id;
+  const role = req.user.role;
+  const { username, name, description, bio, seniority, expertise } = req.body;
+
+  // Update username if provided
+  if (username) {
+    const existingUser = await authModel.findOne({ username, _id: { $ne: userId } });
+    if (existingUser) return next(new AppError('Username already taken', 400));
+    await authModel.findByIdAndUpdate(userId, { username });
+  }
+
+  let pictureUrl = '';
+  if (req.file) {
+    pictureUrl = await uploadToCloudinary(req.file.buffer, role === 'company_admin' ? 'company_logos' : 'engineer_pics');
+  }
+
+  let profile = null;
+
+  if (role === 'company_admin') {
+    profile = await companyModel.findOne({ ownerId: userId });
+    if (profile) {
+      if (name) profile.name = name;
+      if (description) profile.description = description;
+      if (pictureUrl) profile.logo = pictureUrl;
+      await profile.save();
+    }
+  } else if (role === 'engineer') {
+    profile = await engineerModel.findOne({ userId });
+    if (profile) {
+      if (bio) profile.bio = bio;
+      if (seniority) profile.seniority = seniority;
+      if (pictureUrl) profile.picture = pictureUrl;
+      
+      if (expertise) {
+        try {
+          profile.expertise = JSON.parse(expertise);
+        } catch (e) {
+          profile.expertise = expertise.split(',').map(s => s.trim()).filter(Boolean);
+        }
+      }
+      await profile.save();
+    }
+  }
+
+  res.status(200).json({ success: true, message: 'Profile updated successfully', profile });
+});
