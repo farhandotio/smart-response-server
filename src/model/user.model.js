@@ -21,7 +21,6 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ['engineer', 'company_admin', 'platform_admin'],
-      default: 'company_admin',
     },
     isVerified: {
       type: Boolean,

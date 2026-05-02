@@ -17,8 +17,9 @@ const otpAttempts = new Map();
 
 export const sendOTPForRegistration = async (email, username, password) => {
   const existing = otpStore.get(email);
-  if (existing) {
-    throw new AppError('Please wait before requesting another OTP', 400);
+  if (existing && Date.now() - existing.createdAt < 60 * 1000) {
+    const timeLeft = Math.ceil((60 * 1000 - (Date.now() - existing.createdAt)) / 1000);
+    throw new AppError(`Please wait ${timeLeft} seconds before requesting another OTP`, 400);
   }
 
   const otp = otpGenerator.generate(6, {
@@ -36,6 +37,7 @@ export const sendOTPForRegistration = async (email, username, password) => {
     otp: hashedOTP,
     username,
     password,
+    createdAt: Date.now(),
     expiresAt: Date.now() + 5 * 60 * 1000,
   });
 
