@@ -27,6 +27,16 @@ const engineerProfileSchema = new mongoose.Schema({
     enum: ['online', 'busy', 'offline'],
     default: 'offline',
   },
+
+  notifications: [
+    {
+      type: { type: String, enum: ['invitation', 'alert', 'system'], default: 'system' },
+      message: { type: String, required: true },
+      link: { type: String },
+      isRead: { type: Boolean, default: false },
+      createdAt: { type: Date, default: Date.now },
+    },
+  ],
 });
 
 const engineerModel = mongoose.model('EngineerProfile', engineerProfileSchema);

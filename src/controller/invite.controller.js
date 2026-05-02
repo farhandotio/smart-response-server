@@ -1,9 +1,12 @@
 import crypto from 'crypto';
 import inviteModel from '../model/invite.model.js';
 import { sendEmail } from '../utils/sendEmail.js';
+import { inviteTemplate } from '../email/inviteTemplate.js';
 import asyncHandler from '../utils/asynhandler.js';
 import AppError from '../utils/AppError.js';
 import companyModel from '../model/company.model.js';
+import authModel from '../model/user.model.js';
+import engineerModel from '../model/engineer.model.js';
 import { config } from '../config/config.js';
 
 export const inviteEngineer = asyncHandler(async (req, res, next) => {
@@ -25,11 +28,23 @@ export const inviteEngineer = asyncHandler(async (req, res, next) => {
 
   await sendEmail({
     to: email,
-    subject: `Join ${company.name} on Smart Response`,
-    html: `<h3>You are invited to join ${company.name} as an Engineer.</h3>
-           <p>Click the link below to join:</p>
-           <a href="${inviteLink}">Accept Invitation</a>`,
+    subject: `Invitation to join ${company.name} on SIRP`,
+    html: inviteTemplate(company.name, inviteLink),
   });
+
+  // Also add an in-app notification if the engineer is already registered
+  const engineerUser = await authModel.findOne({ email });
+  if (engineerUser) {
+    const engineerProfile = await engineerModel.findOne({ userId: engineerUser._id });
+    if (engineerProfile) {
+      engineerProfile.notifications.push({
+        type: 'invitation',
+        message: `You have been invited to join ${company.name}`,
+        link: inviteLink,
+      });
+      await engineerProfile.save();
+    }
+  }
 
   console.log(inviteLink);
   res.status(200).json({ success: true, message: 'Invitation sent!' });
