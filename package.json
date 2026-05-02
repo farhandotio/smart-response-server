@@ -28,6 +28,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.1.1",
     "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.7",
     "otp-generator": "^4.0.1",
     "resend": "^6.12.2",
     "slugify": "^1.6.9",
