@@ -13,14 +13,19 @@ app.use(express.json());
 app.use(cookieparser());
 app.use(
   cors({
-    origin: [config.CLIENT_URL, 'http://localhost:5173'],
+    origin: [config.CLIENT_URL, 'http://localhost:5173', 'http://localhost:5174'],
     credentials: true,
   })
 );
 app.use(morgan('dev'));
 
-cron.schedule('*/15 * * * *', () => {
-  autoMonitorLogs();
+cron.schedule('*/1 * * * *', async () => {
+  console.log('Running auto-monitor...');
+  try {
+    await autoMonitorLogs.directExecute();
+  } catch (err) {
+    console.error('Cron Monitor Error:', err.message);
+  }
 });
 
 app.get('/', (req, res) => {
@@ -32,12 +37,14 @@ import otpRoutes from './routes/otp.routes.js';
 import profileRoutes from './routes/profile.routes.js';
 import companyRoutes from './routes/company.routes.js';
 import incidentRoutes from './routes/incident.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
 
 app.use('/api/otp', otpRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/incidents', incidentRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.use(errorHandler);
 export default app;

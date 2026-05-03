@@ -2,9 +2,10 @@ import asyncHandler from '../utils/asynhandler.js';
 import AppError from '../utils/AppError.js';
 import companyModel from '../model/company.model.js';
 import engineerModel from '../model/engineer.model.js';
-import inviteModel from '../model/invite.model.js';
+import incidentModel from '../model/incident.model.js';
 import slugify from 'slugify';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
+import inviteModel from '../model/invite.model.js';
 
 export const createWorkspace = asyncHandler(async (req, res, next) => {
   const { name, description, logSources } = req.body;
@@ -135,4 +136,65 @@ export const addLogSource = asyncHandler(async (req, res, next) => {
   await company.save();
 
   res.status(200).json({ success: true, message: 'Log source integrated successfully', logSources: company.logSources });
+});
+
+export const getAllCompanies = asyncHandler(async (req, res, next) => {
+  const companies = await companyModel.find({}, 'name _id description logo').lean();
+  res.status(200).json({ success: true, companies });
+});
+
+export const updateWorkspace = asyncHandler(async (req, res, next) => {
+  const { name, description, slug, logSources } = req.body;
+  const userId = req.user.id;
+
+  const company = await companyModel.findOne({ ownerId: userId });
+  if (!company) return next(new AppError('Workspace not found or unauthorized', 404));
+
+  if (name) {
+    company.name = name;
+    if (!slug) company.slug = slugify(name, { lower: true, strict: true });
+  }
+  if (slug) company.slug = slugify(slug, { lower: true, strict: true });
+  if (description !== undefined) company.description = description;
+
+  if (req.file) {
+    company.logo = await uploadToCloudinary(req.file.buffer, 'company_logos');
+  }
+
+  if (logSources) {
+    let logSourcesArray = logSources;
+    if (typeof logSources === 'string') {
+      try { logSourcesArray = JSON.parse(logSources); } catch(e) { logSourcesArray = []; }
+    }
+    company.logSources = logSourcesArray;
+  }
+
+  await company.save();
+  res.status(200).json({ success: true, company });
+});
+
+export const kickMember = asyncHandler(async (req, res, next) => {
+  const { engineerId } = req.params;
+  const userId = req.user.id;
+
+  const company = await companyModel.findOne({ ownerId: userId });
+  if (!company) return next(new AppError('Workspace not found or unauthorized', 404));
+
+  const engineer = await engineerModel.findOne({ userId: engineerId, companyId: company._id });
+  if (!engineer) return next(new AppError('Engineer not found in your workspace', 404));
+
+  // Check for active incidents assigned to this engineer
+  const activeInc = await incidentModel.findOne({
+    companyId: company._id,
+    assignedEngineers: engineer._id,
+    status: { $in: ['open', 'investigating'] },
+  });
+  if (activeInc) {
+    return next(new AppError('Engineer has active incidents; cannot be removed until they are resolved or unassigned', 400));
+  }
+
+  engineer.companyId = null;
+  await engineer.save();
+
+  res.status(200).json({ success: true, message: 'Engineer removed from workspace' });
 });
