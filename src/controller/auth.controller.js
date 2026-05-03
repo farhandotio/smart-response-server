@@ -108,13 +108,6 @@ export const updateRole = asyncHandler(async (req, res, next) => {
   );
 
   if (!user) return next(new AppError('User not found', 404));
-  
-  if (role === 'engineer') {
-    const existingProfile = await engineerModel.findOne({ userId: user._id });
-    if (!existingProfile) {
-      await engineerModel.create({ userId: user._id, availabilityStatus: 'online' });
-    }
-  }
 
   // Generate new token with updated role
   const token = generateToken(user._id, user.role, user.username, user.email);

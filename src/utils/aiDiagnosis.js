@@ -10,7 +10,7 @@ export const analyzeLogWithAI = async (logContent) => {
   });
 
   const prompt = `
-    Context: You are the "Smart Response Monitoring System". You are an autonomous, high-level diagnostic engine. 
+    Context: You are the "SIRP AI Monitoring System". You are an autonomous, high-level diagnostic engine. 
     Your goal is to analyze logs from any environment (VPS, Cloud, Shared Hosting) and any tech stack (JavaScript, PHP, Python, Java, etc.).
 
     Log Data:
