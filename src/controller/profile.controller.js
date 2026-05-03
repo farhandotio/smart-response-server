@@ -28,15 +28,20 @@ export const setupEngineerProfile = asyncHandler(async (req, res, next) => {
     return next(new AppError(`Only engineers can set up this profile (Current role: ${req.user.role})`, 403));
   }
   const userId = req.user.id;
-  const { expertise, seniority, bio, inviteToken } = req.body;
+  const { expertise, seniority, bio, inviteToken, companyId: providedCompanyId } = req.body;
 
-  let companyId = null;
+  let companyId = providedCompanyId || null;
   if (inviteToken) {
     const invite = await inviteModel.findOne({ token: inviteToken, email: req.user.email, status: 'pending' });
     if (invite) {
       companyId = invite.companyId;
       invite.status = 'accepted';
       await invite.save();
+    }
+  } else if (companyId) {
+    const company = await companyModel.findById(companyId);
+    if (!company) {
+      return next(new AppError('Selected workspace not found', 404));
     }
   }
 

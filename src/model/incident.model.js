@@ -43,5 +43,15 @@ const incidentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Atomic unique index: prevent duplicate active incidents for the same company+title
+incidentSchema.index(
+  { companyId: 1, title: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $in: ['open', 'investigating', 'identified', 'monitoring'] } },
+    name: 'unique_active_incident',
+  }
+);
+
 const incidentModel = mongoose.model('Incident', incidentSchema);
 export default incidentModel;
