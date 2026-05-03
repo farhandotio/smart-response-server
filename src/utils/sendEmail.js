@@ -7,7 +7,7 @@ export async function sendEmail({ to, subject, html }) {
   try {
     const response = await resendClient.emails.send({
       from: 'Smart Response <hello@smarterresponse.xyz>',
-      replyTo: 'support@smarterresponse.xyz>',
+      replyTo: 'support@smarterresponse.xyz',
       to,
       subject,
       html,

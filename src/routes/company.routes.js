@@ -7,7 +7,10 @@ import {
   getCompanyDetails,
   getInvitations,
   acceptInvitation,
-  addLogSource
+  addLogSource,
+  getAllCompanies,
+  updateWorkspace,
+  kickMember
 } from '../controller/company.controller.js';
 import { inviteEngineer } from '../controller/invite.controller.js';
 import { companyValidation, inviteValidation } from '../validator/company.validator.js';
@@ -25,9 +28,12 @@ companyRoutes.post(
 );
 companyRoutes.get('/members', identifyUser, getMembers);
 companyRoutes.get('/invitations', identifyUser, getInvitations);
+companyRoutes.get('/list/all', identifyUser, getAllCompanies);
 companyRoutes.post('/accept-invitation', identifyUser, acceptInvitation);
 companyRoutes.post('/invite', identifyUser, inviteValidation, validate, inviteEngineer);
 companyRoutes.post('/log-source', identifyUser, addLogSource);
 companyRoutes.get('/:slug', getCompanyDetails);
+companyRoutes.patch('/update', identifyUser, upload.single('image'), updateWorkspace);
+companyRoutes.delete('/member/:engineerId', identifyUser, kickMember);
 
 export default companyRoutes;
