@@ -23,6 +23,10 @@ cron.schedule('*/15 * * * *', () => {
   autoMonitorLogs();
 });
 
+app.get('/', (req, res) => {
+  res.send('Server is running!');
+});
+
 import authRoutes from './routes/auth.routes.js';
 import otpRoutes from './routes/otp.routes.js';
 import profileRoutes from './routes/profile.routes.js';
