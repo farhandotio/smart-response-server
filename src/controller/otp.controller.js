@@ -52,7 +52,7 @@ export const sendOTPForRegistration = async (email, username, password) => {
   try {
     await sendEmail({
       to: email,
-      subject: 'Verify Your Email - Smart Response',
+      subject: 'Verify Your Email - SIRP AI',
       html: otpTemplate(username, otp),
     });
     console.log(`OTP email sent to ${email}`);
